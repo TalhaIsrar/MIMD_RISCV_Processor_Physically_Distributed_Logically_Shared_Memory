@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # Parameters
 WIDTH = 160
 HEIGHT = 120
-FILENAME = 'mandelbrot.txt'  # Your output file
+FILENAME = 'mandelbrot.txt'
 
 # Read iterations from txt file
 def read_mandelbrot(filename):

@@ -24,7 +24,7 @@ void uart_puts(const char *str)
         uart_putc(*str++);
 }
 
-// Send iteration as number + newline
+// Send iteration as number
 void uart_put_iter(uint16_t iter)
 {
     char buf[6]; // max 5 digits + null
