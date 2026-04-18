@@ -35,6 +35,16 @@ module dma_controller(
     logic        slv_write_ph2;
     logic [31:0] slv_addr_ph2;
 
+    // DMA States
+    typedef enum logic [1:0] {
+        IDLE  = 2'b00,
+        READ  = 2'b01,
+        WRITE = 2'b10,
+        DONE  = 2'b11
+    } state_t;
+
+    state_t state;
+
     always_ff @(posedge HCLK or negedge HRESETn) begin
         if (!HRESETn) begin
             slv_write_ph2 <= '0;
@@ -78,16 +88,6 @@ module dma_controller(
     end
 
     // DMA Master Operation (Transfer)
-
-    // DMA States
-    typedef enum logic [1:0] {
-        IDLE  = 2'b00,
-        READ  = 2'b01,
-        WRITE = 2'b10,
-        DONE  = 2'b11
-    } state_t;
-
-    state_t state;
 
     logic [31:0] src_ptr, dst_ptr, cnt;
     logic [31:0] rd_data;   // buffer: holds data read from source

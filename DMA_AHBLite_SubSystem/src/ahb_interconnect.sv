@@ -30,14 +30,14 @@ module ahb_interconnect #(
   // this example decoder uses minimal decoding
   // (each slave has multiple images in the address map and there are no unmapped regions )
   always_comb
-    if ( HADDR < 32'h3000_0000 )
-      HSEL_SIGNALS = 1 << 3;
-    if ( HADDR < 32'h2000_0000 )
-      HSEL_SIGNALS = 1 << 2;
-    else if ( HADDR < 32'h1000_0000 )
-      HSEL_SIGNALS = 1 << 1;
-    else
+    if ( HADDR < 32'h1000_0000 )
       HSEL_SIGNALS = 1 << 0;
+    else if ( HADDR < 32'h2000_0000 )
+      HSEL_SIGNALS = 1 << 1;
+    else if ( HADDR < 32'h3000_0000 )
+      HSEL_SIGNALS = 1 << 2;
+    else
+      HSEL_SIGNALS = 1 << 3;
   
   //-------------------------
   // the code below should work for any number of slaves
