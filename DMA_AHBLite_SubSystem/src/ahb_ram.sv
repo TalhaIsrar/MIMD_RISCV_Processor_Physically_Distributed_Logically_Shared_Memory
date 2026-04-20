@@ -23,7 +23,7 @@
 `ifdef PROG_FILE
   // already defined - do nothing
 `else
-  `define PROG_FILE  "code.hex"
+  `define PROG_FILE  "C:/Users/talha/Documents/vivado/dma_subsystem/behavioural/code.hex"
 `endif
 
 module ahb_ram #(

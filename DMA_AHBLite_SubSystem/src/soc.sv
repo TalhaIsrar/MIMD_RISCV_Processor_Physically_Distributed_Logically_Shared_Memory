@@ -4,10 +4,11 @@ module soc (
   output [15:0] DataOut,
   output DataValid
 );
+    timeunit 1ns; timeprecision 1ps;
   // Global & Master AHB Signals
   wire [31:0] HADDR, HADDR_M0, HADDR_M1, HWDATA, HWDATA_M0, HWDATA_M1, HRDATA;
   wire [1:0] HTRANS_M0, HTRANS_M1, HTRANS;
-  wire [2:0] HSIZE_M0, HSIZE_M1, HBURST;
+  wire [2:0] HSIZE, HSIZE_M0, HSIZE_M1, HBURST;
   wire [3:0] HPROT;
   wire HWRITE, HWRITE_M0, HWRITE_M1 , HMASTLOCK, HRESP;
   wire HREADY_M0, HREADY_M1 , HREADY;
@@ -62,21 +63,24 @@ module soc (
   // Slaves
   // RAM 1 - Start Address 0x0000_0000, Range 4K Words
   ahb_ram ram_1 (
-    .HCLK, .HRESETn, .HADDR, .HWDATA, .HSIZE, .HTRANS, .HWRITE, .HREADY,
+    .HCLK(HCLK), .HRESETn(HRESETn), .HADDR(HADDR), .HWDATA(HWDATA),
+    .HSIZE(HSIZE), .HTRANS(HTRANS), .HWRITE(HWRITE), .HREADY(HREADY),
     .HSEL(HSEL_RAM1),
     .HRDATA(HRDATA_RAM1), .HREADYOUT(HREADYOUT_RAM1)
   );
 
   // RAM 2 - Start Address 0x1000_0000, Range 4K Words
   ahb_ram ram_2 (
-    .HCLK, .HRESETn, .HADDR, .HWDATA, .HSIZE, .HTRANS, .HWRITE, .HREADY,
+    .HCLK(HCLK), .HRESETn(HRESETn), .HADDR(HADDR), .HWDATA(HWDATA),
+    .HSIZE(HSIZE), .HTRANS(HTRANS), .HWRITE(HWRITE), .HREADY(HREADY),
     .HSEL(HSEL_RAM2),
     .HRDATA(HRDATA_RAM2), .HREADYOUT(HREADYOUT_RAM2)
   );
 
-    ahb_out out_1 (
+  ahb_out out_1 (
 
-    .HCLK, .HRESETn, .HADDR, .HWDATA, .HSIZE, .HTRANS, .HWRITE, .HREADY,
+    .HCLK(HCLK), .HRESETn(HRESETn), .HADDR(HADDR), .HWDATA(HWDATA),
+    .HSIZE(HSIZE), .HTRANS(HTRANS), .HWRITE(HWRITE), .HREADY(HREADY),
     .HSEL(HSEL_OUT),
     .HRDATA(HRDATA_OUT), .HREADYOUT(HREADYOUT_OUT),
 

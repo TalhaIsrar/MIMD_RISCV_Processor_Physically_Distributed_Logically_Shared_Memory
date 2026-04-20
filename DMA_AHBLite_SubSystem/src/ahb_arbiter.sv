@@ -34,18 +34,23 @@ module ahb_arbiter(
     output logic [1:0]  HGRANT
 
 );
-    logic granted_to_m1;
 
+    timeunit 1ns; timeprecision 1ps;
+    logic granted_to_m1;
+    logic grant_next;
+
+    // Combinational arbitration decision
     // Priority: M1 (DMA) > M0 (CPU) to allow DMA to drain quickly
+    always_comb begin
+        if (HBUSREQ[1]) grant_next = 1'b1;
+        else            grant_next = 1'b0;
+    end
+
     always_ff @(posedge HCLK or negedge HRESETn) begin
         if (!HRESETn)
             granted_to_m1 <= 1'b0;
-        else if (HREADY) begin
-            if (HBUSREQ[1])
-                granted_to_m1 <= 1'b1;
-            else
-                granted_to_m1 <= 1'b0;
-        end
+        else if (HREADY)
+            granted_to_m1 <= grant_next;
     end
 
     always_comb begin
@@ -62,7 +67,7 @@ module ahb_arbiter(
             HWDATA = HWDATA_M0;
             HTRANS = HTRANS_M0;
             HSIZE  = HSIZE_M0;
-            HGRANT = {1'b0, HREADY};
+            HGRANT = {1'b0, HREADY & ~grant_next};  // kill CPU's HREADY if DMA wins next 
         end
     end
 

@@ -20,7 +20,7 @@ module ahb_interconnect #(
   output logic [31:0] HRDATA
 
 );
-
+    timeunit 1ns; timeprecision 1ps;
   logic [num_slaves-1:0] mux_sel;
   int i;
 
@@ -29,7 +29,7 @@ module ahb_interconnect #(
   
   // this example decoder uses minimal decoding
   // (each slave has multiple images in the address map and there are no unmapped regions )
-  always_comb
+  always_comb 
     if ( HADDR < 32'h1000_0000 )
       HSEL_SIGNALS = 1 << 0;
     else if ( HADDR < 32'h2000_0000 )

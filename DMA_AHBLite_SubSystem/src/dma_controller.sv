@@ -21,12 +21,12 @@ module dma_controller(
     output logic [1:0]  HTRANS_M,
     output logic [2:0]  HSIZE_M
 );
-
+    timeunit 1ns; timeprecision 1ps;
     // Config registers (written by CPU via slave port)
     // Offset 0x00 : src_addr
     // Offset 0x04 : dst_addr
     // Offset 0x08 : length (word count)
-    // Offset 0x0C : control  bit[0]=start, bit[1]=done (read-only)
+    // Offset 0x0C : control  bit[0]=start, bit[1]=done
     logic [31:0] src_addr_r, dst_addr_r, length_r;
     logic        start_r, done_r;
 
@@ -55,6 +55,19 @@ module dma_controller(
         end
     end
 
+    logic write_cycle;
+
+    always_ff @(posedge HCLK or negedge HRESETn) begin
+        if (!HRESETn)
+            write_cycle <= 0;
+        else if (HREADY_S && HSEL_S && (HTRANS_S != 2'b00))
+            write_cycle <= HWRITE_S;
+        else
+            write_cycle <= 0;
+    end
+
+    assign HREADYOUT_S = !write_cycle;
+
     always_ff @(posedge HCLK or negedge HRESETn) begin
         if (!HRESETn) begin
             src_addr_r <= '0;
@@ -77,7 +90,6 @@ module dma_controller(
     end
 
     always_comb begin
-        HREADYOUT_S = 1'b1;
         case (HADDR_S[3:0])
             4'h0:    HRDATA_S = src_addr_r;
             4'h4:    HRDATA_S = dst_addr_r;
@@ -87,10 +99,9 @@ module dma_controller(
         endcase
     end
 
-    // DMA Master Operation (Transfer)
-
+    // DMA Master Operation (Transf
     logic [31:0] src_ptr, dst_ptr, cnt;
-    logic [31:0] rd_data;   // buffer: holds data read from source
+    logic [31:0] rd_data;   // buffer holds data read from source
 
     always_ff @(posedge HCLK or negedge HRESETn) begin
         if (!HRESETn) begin
@@ -103,8 +114,8 @@ module dma_controller(
         end else begin
             case (state)
                 IDLE: begin
-                    done_r <= '0;
                     if (start_r) begin
+                        done_r <= '0;
                         src_ptr <= src_addr_r;
                         dst_ptr <= dst_addr_r;
                         cnt     <= length_r;
@@ -149,11 +160,20 @@ module dma_controller(
         end
     end
 
+    logic [31:0] hwdata_reg;
+
+    always_ff @(posedge HCLK or negedge HRESETn) begin
+        if (!HRESETn)
+            hwdata_reg <= '0;
+        else if (HREADY_M)
+            hwdata_reg <= HRDATA_M;
+    end
+
     always_comb begin
         // Defaults — idle bus
         HADDR_M  = '0;
         HWRITE_M = '0;
-        HWDATA_M = '0;
+        HWDATA_M = hwdata_reg;
         HTRANS_M = 2'b00;   // IDLE
         HSIZE_M  = 3'b010;  // 32-bit word
 
@@ -166,14 +186,15 @@ module dma_controller(
             WRITE: begin
                 HADDR_M  = dst_ptr;
                 HWRITE_M = 1'b1;
-                HWDATA_M = rd_data;  // previous cycle's read data
                 HTRANS_M = 2'b10;
             end
             DONE: begin
                 // Final write data phase - hold write with no new address
                 HWRITE_M = 1'b1;
-                HWDATA_M = rd_data;
-                HTRANS_M = 2'b00;  // IDLE - no new address
+                HTRANS_M = 2'b10;  // IDLE - no new address
+            end
+            IDLE: begin
+                if (start_r) HTRANS_M = 2'b10;
             end
             default: ;
         endcase
